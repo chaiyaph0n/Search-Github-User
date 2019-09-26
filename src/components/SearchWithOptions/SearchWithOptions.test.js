@@ -8,7 +8,7 @@ describe('App - test', () => {
   const mockOnChange = e => {
     mockValue = e.target.value
   }
-  const mockOptionList = { items: [1, 2, 3] }
+  const mockOptionList = { items: [{ id: 1 }, { id: 2 }, { id: 3 }] }
 
   afterEach(() => {
     cleanup()
@@ -55,26 +55,40 @@ describe('App - test', () => {
     expect(getByTestId('option-list-wrapper-tid')).not.toBeNull()
   })
 
-  it('should not render option list when focus out', () => {
-    const { container, getByTestId, rerender } = render(
-      <SearchWithOptions value={mockValue} onChange={mockOnChange} optionList={{}} />
-    )
-    expect(container.querySelector('[data-testid="option-list-wrapper-tid"]')).toBeNull()
-    fireEvent.change(getByTestId('search-input-tid'), { target: { value: 'dan' } })
+  // it('should not render option list when click outside', () => {
+  //   //
+  // })
 
-    rerender(
-      <SearchWithOptions
-        value={mockValue}
-        onChange={mockOnChange}
-        optionList={{ items: [1, 2, 3] }}
-      />
+  it('should close option list, when user selected option', () => {
+    mockValue = 'dan'
+    const { container, getByTestId } = render(
+      <SearchWithOptions value={mockValue} onChange={mockOnChange} optionList={mockOptionList} />
     )
     fireEvent.focus(getByTestId('search-input-tid'))
     expect(getByTestId('option-list-wrapper-tid')).not.toBeNull()
 
-    fireEvent.blur(getByTestId('search-input-tid'))
+    fireEvent.click(getByTestId('user-option-wrapper-tid-0'))
     expect(container.querySelector('[data-testid="option-list-wrapper-tid"]')).toBeNull()
   })
 
-  //
+  it('should send callback data, when user selected option', () => {
+    mockValue = 'dan'
+    const selectedIdx = 0
+    const handleOnSelectUser = jest.fn()
+    const { container, getByTestId } = render(
+      <SearchWithOptions
+        value={mockValue}
+        onChange={mockOnChange}
+        optionList={mockOptionList}
+        onSelectUser={handleOnSelectUser}
+      />
+    )
+
+    fireEvent.focus(getByTestId('search-input-tid'))
+    expect(getByTestId('option-list-wrapper-tid')).not.toBeNull()
+
+    fireEvent.click(getByTestId(`user-option-wrapper-tid-${selectedIdx}`))
+    expect(handleOnSelectUser).toHaveBeenCalled()
+    expect(handleOnSelectUser).toHaveBeenCalledWith(mockOptionList.items[selectedIdx])
+  })
 })
