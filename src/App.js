@@ -1,7 +1,8 @@
-import React, { useState } from 'react'
+import React, { useCallback, useMemo, useState } from 'react'
 import { css } from 'emotion'
 
 import SearchWithOptions from './components/SearchWithOptions'
+import Select from './components/Select'
 import useGithubUsers from './hooks/useGithubUsers'
 
 const appStyle = css`
@@ -20,25 +21,45 @@ const appStyle = css`
   }
 `
 
+const searchWrapper = css`
+  display: flex;
+  width: 80%;
+
+  & > div {
+    margin-right: 8px;
+  }
+`
+
 function App() {
-  const [username, setUsername, userDetail] = useGithubUsers()
+  const [username, setUsername, perPage, setPerPage, searchResult] = useGithubUsers()
   const [selectedUser, setSelectedUser] = useState(null)
+
+  const optionList = useMemo(
+    () => [{ name: '10', value: 10 }, { name: '20', value: 20 }, { name: '30', value: 30 }],
+    []
+  )
 
   const handleSetSelectedUser = (val = null) => {
     setSelectedUser(val)
     window.open(val.html_url)
   }
 
+  const handleSetPerPage = useCallback(val => {
+    setPerPage(val)
+  }, [])
+
   return (
     <div className={appStyle}>
       <label>Search Github's User</label>
-      <SearchWithOptions
-        value={username}
-        onChange={setUsername}
-        optionList={userDetail}
-        onSelectUser={handleSetSelectedUser}
-      />
-      {/* TODO: add user detail */}
+      <div className={searchWrapper}>
+        <SearchWithOptions
+          value={username}
+          onChange={setUsername}
+          optionList={searchResult}
+          onSelectUser={handleSetSelectedUser}
+        />
+        <Select items={optionList} value={perPage} onSelect={handleSetPerPage} />
+      </div>
     </div>
   )
 }

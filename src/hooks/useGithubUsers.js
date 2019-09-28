@@ -3,28 +3,35 @@ import { useCallback, useEffect, useState } from 'react'
 import useDebounce from './useDebounce'
 import { GITHUB_API } from '../constants'
 
+async function searchGithubUsers({ username = '', perPage = 10 }, callback = () => {}) {
+  const { ROOT, SEARCH, USERS } = GITHUB_API
+  const searchUserURL = `${ROOT}${SEARCH}/${USERS}?q=${username}&per_page=${perPage}`
+
+  return await fetch(searchUserURL)
+    .then(response => response.json())
+    .then(data => {
+      callback(data)
+      return data
+    })
+}
+
 function useGithubUser(debounceTime = 300) {
   const [username, setUsername] = useState('')
-  const [userDetail, setUserDetail] = useState({})
+  const [perPage, setPerPage] = useState(10)
+  const [searchResult, setSearchResult] = useState({})
   const debounceUsername = useDebounce(username, debounceTime)
 
   const memoOnUsernameChange = useCallback(function _onUsernameChange(evt) {
     setUsername(evt.target.value)
   }, [])
 
-  async function searchGithubUsers(val) {
-    const { ROOT, SEARCH, USERS } = GITHUB_API
-    const searchUserURL = `${ROOT}${SEARCH}/${USERS}?q=${val}`
-    return await fetch(searchUserURL)
-      .then(response => response.json())
-      .then(userDetail => setUserDetail(userDetail))
-  }
-
   useEffect(() => {
-    if (debounceUsername) searchGithubUsers(debounceUsername)
-  }, [debounceUsername])
+    if (debounceUsername) {
+      searchGithubUsers({ username: debounceUsername, perPage }, setSearchResult)
+    }
+  }, [debounceUsername, perPage])
 
-  return [username, memoOnUsernameChange, userDetail]
+  return [username, memoOnUsernameChange, perPage, setPerPage, searchResult]
 }
 
 export default useGithubUser

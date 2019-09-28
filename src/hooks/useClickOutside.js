@@ -8,7 +8,7 @@ export default function useClickOutside(callback, initRef = null) {
     document.addEventListener('mousedown', handleClickOutside)
 
     return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
+  })
 
   return parentNode
 }
